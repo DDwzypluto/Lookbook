@@ -1,0 +1,109 @@
+{
+  "site": {
+    "title": "Study - Personal Reading Space",
+    "description": "Online Novel Reading"
+  },
+  "header": {
+    "bookshelf": "Study",
+    "search": "Search",
+    "themeAuto": "Auto",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeGreen": "Eye Care"
+  },
+  "home": {
+    "myShelf": "My Bookshelf",
+    "addBook": "Add Book",
+    "loading": "Loading...",
+    "empty": "Your bookshelf is empty",
+    "emptyHint": "Search and add books",
+    "continueReading": "Continue Reading",
+    "totalChapters": "{count} chapters",
+    "latest": "Latest"
+  },
+  "search": {
+    "title": "Add Book",
+    "searchTab": "Search by Title",
+    "urlTab": "Paste URL",
+    "sourceLabel": "Select Source",
+    "placeholder": "Enter book title...",
+    "searching": "Searching...",
+    "search": "Search",
+    "urlPlaceholder": "Paste book detail page URL, e.g. https://www.gutenberg.org/ebooks/1234",
+    "addToShelf": "Add to Shelf",
+    "adding": "Adding...",
+    "noResult": "No books found. Try switching sources or paste a direct URL.",
+    "searchFailed": "Search failed. Try pasting a direct link instead.",
+    "addFailed": "Failed to add book",
+    "unknownAuthor": "Unknown Author",
+    "addButton": "Add to Shelf",
+    "tips": "Tips",
+    "tip1": "If search returns no results, switch to the 'Paste URL' tab and paste the book detail page URL directly.",
+    "tip2": "Supported URL formats: book detail pages (pages containing the chapter list)",
+    "tip3": "The local test source can be used to experience all features."
+  },
+  "book": {
+    "loading": "Loading...",
+    "unknownAuthor": "Unknown Author",
+    "finished": "Completed",
+    "ongoing": "Ongoing",
+    "totalChapters": "{count} chapters total",
+    "source": "Source",
+    "latest": "Latest",
+    "continueReading": "Continue Reading",
+    "remove": "Remove",
+    "removing": "Removing...",
+    "confirmRemove": "Are you sure you want to remove this book? All chapter caches and reading progress will be deleted.",
+    "catalog": "Table of Contents",
+    "cached": "Cached",
+    "uncached": "Uncached"
+  },
+  "reader": {
+    "loading": "Loading chapter...",
+    "backToCatalog": "Back to Catalog",
+    "prevChapter": "← Previous",
+    "nextChapter": "Next →",
+    "catalog": "Catalog",
+    "bookmark": "🔖 Bookmark",
+    "bookmarkAdded": "Bookmark added",
+    "settings": "⚙ Settings",
+    "settingsTitle": "Reading Settings",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeGreen": "Eye Care",
+    "fontSize": "Font Size",
+    "reset": "Reset",
+    "shortcuts": "Shortcuts: ↑↓ Scroll · Space PageDown · ←→ Chapters · B Bookmark · Esc Settings",
+    "words": "words",
+    "listen": "🎧 Listen",
+    "stopListen": "⏹ Stop"
+  },
+  "ad": {
+    "title": "Support Us",
+    "skip": "Skip ({seconds}s)",
+    "skipNow": "Skip Ad, Continue Reading",
+    "message": "Ad revenue helps us keep the site running"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "loginBtn": "Login",
+    "registerBtn": "Register",
+    "noAccount": "No account? Register",
+    "hasAccount": "Already have an account? Login"
+  },
+  "admin": {
+    "title": "Ad Management",
+    "addAd": "Add Ad",
+    "type": "Type",
+    "url": "URL",
+    "duration": "Duration(s)",
+    "active": "Active",
+    "actions": "Actions"
+  }
+}

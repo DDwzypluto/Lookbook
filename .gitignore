@@ -1,0 +1,9 @@
+node_modules/
+.next/
+data/
+reader-data/
+*.db
+*.db-wal
+*.db-shm
+.env.local
+*.tsbuildinfo
