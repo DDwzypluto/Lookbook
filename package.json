@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.3",
     "axios": "^1.16.1",
     "axios-cookiejar-support": "^7.0.0",
     "bcryptjs": "^3.0.3",

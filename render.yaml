@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: lookbook
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/reader-data
+      sizeGB: 1
+    envVars:
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
