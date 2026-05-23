@@ -2,9 +2,11 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const DB_PATH = process.env.NODE_ENV === 'production'
-  ? path.join('/tmp', 'reader.db')
-  : path.join(process.cwd(), '..', 'reader-data', 'reader.db');
+const DB_PATH = process.env.DB_PATH || (
+  process.env.NODE_ENV === 'production'
+    ? '/data/reader.db'
+    : path.join(process.cwd(), '..', 'reader-data', 'reader.db')
+);
 
 function ensureDataDir() {
   const dir = path.dirname(DB_PATH);

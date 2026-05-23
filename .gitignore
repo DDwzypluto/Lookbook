@@ -7,3 +7,5 @@ reader-data/
 *.db-shm
 .env.local
 *.tsbuildinfo
+
+.vercel
