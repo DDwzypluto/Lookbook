@@ -1,0 +1,9 @@
+node_modules
+.next
+data
+reader-data
+.git
+*.db
+*.db-wal
+*.db-shm
+.env.local
