@@ -16,8 +16,13 @@ export function initSources() {
   spiderRegistry.register(new LocalTestSpider());
   spiderRegistry.register(new GutenbergSpider());
   spiderRegistry.register(new OpenLibrarySpider());
-  for (const mirror of BIQUGE_MIRRORS) {
-    spiderRegistry.register(new BiqugeSpider(mirror));
+
+  // Biquge sources may be blocked depending on server location
+  const bqEnabled = process.env.BQ_ENABLED !== 'false';
+  if (bqEnabled) {
+    for (const mirror of BIQUGE_MIRRORS) {
+      spiderRegistry.register(new BiqugeSpider(mirror));
+    }
   }
 }
 
