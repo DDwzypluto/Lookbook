@@ -34,6 +34,9 @@ export default function Header() {
           {t('bookshelf')}
         </Link>
         <nav className="flex items-center gap-4">
+          <Link href="/pricing" className="text-sm hover:underline" style={{ color: 'var(--text-secondary)' }}>
+            💰 充值
+          </Link>
           <Link href="/create" className="text-sm font-medium hover:underline"
             style={{ color: 'var(--accent)' }}>
             ✨ AI 创作

@@ -112,6 +112,34 @@ export function initDb() {
       viewed_at       TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS token_balances (
+      user_id         INTEGER PRIMARY KEY REFERENCES users(id),
+      balance         INTEGER DEFAULT 0,
+      total_used      INTEGER DEFAULT 0,
+      updated_at      TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS token_transactions (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id         INTEGER NOT NULL,
+      amount          INTEGER NOT NULL,
+      type            TEXT NOT NULL,
+      description     TEXT DEFAULT '',
+      created_at      TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS payment_orders (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id         INTEGER NOT NULL,
+      order_no        TEXT NOT NULL UNIQUE,
+      amount          REAL NOT NULL,
+      tokens          INTEGER NOT NULL,
+      method          TEXT NOT NULL DEFAULT 'alipay',
+      status          TEXT DEFAULT 'pending',
+      paid_at         TEXT,
+      created_at      TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS bookmarks (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
       book_id         INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
@@ -351,4 +379,52 @@ export function saveTranslation(chapterId: number, lang: string, content: string
 
 export function recordAdView(adId: number, userId = 0, bookId = 0, chapterId = 0, completed = 0) {
   getDb().prepare('INSERT INTO ad_views (ad_id, user_id, book_id, chapter_id, completed) VALUES (?, ?, ?, ?, ?)').run(adId, userId, bookId, chapterId, completed);
+}
+
+// Token system
+export function getTokenBalance(userId: number): number {
+  const row = getDb().prepare('SELECT balance FROM token_balances WHERE user_id = ?').get(userId) as any;
+  return row?.balance || 0;
+}
+
+export function addTokens(userId: number, amount: number, description: string) {
+  const tx = getDb().transaction(() => {
+    getDb().prepare('INSERT OR IGNORE INTO token_balances (user_id, balance) VALUES (?, 0)').run(userId);
+    getDb().prepare('UPDATE token_balances SET balance = balance + ?, updated_at = datetime(\'now\') WHERE user_id = ?').run(amount, userId);
+    getDb().prepare('INSERT INTO token_transactions (user_id, amount, type, description) VALUES (?, ?, \'purchase\', ?)').run(userId, amount, description);
+  });
+  tx();
+}
+
+export function spendTokens(userId: number, amount: number, description: string): boolean {
+  const bal = getTokenBalance(userId);
+  if (bal < amount) return false;
+  const tx = getDb().transaction(() => {
+    getDb().prepare('UPDATE token_balances SET balance = balance - ?, total_used = total_used + ?, updated_at = datetime(\'now\') WHERE user_id = ?').run(amount, amount, userId);
+    getDb().prepare('INSERT INTO token_transactions (user_id, amount, type, description) VALUES (?, ?, \'generate\', ?)').run(userId, -amount, description);
+  });
+  tx();
+  return true;
+}
+
+export function getTokenTransactions(userId: number) {
+  return getDb().prepare('SELECT * FROM token_transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50').all(userId);
+}
+
+// Payment orders
+export function createPaymentOrder(userId: number, amount: number, tokens: number, method: string) {
+  const orderNo = `PAY${Date.now()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  getDb().prepare('INSERT INTO payment_orders (user_id, order_no, amount, tokens, method) VALUES (?, ?, ?, ?, ?)').run(userId, orderNo, amount, tokens, method);
+  return orderNo;
+}
+
+export function markOrderPaid(orderNo: string) {
+  getDb().prepare("UPDATE payment_orders SET status = 'paid', paid_at = datetime('now') WHERE order_no = ?").run(orderNo);
+  const order = getDb().prepare('SELECT * FROM payment_orders WHERE order_no = ?').get(orderNo) as any;
+  if (order) addTokens(order.user_id, order.tokens, `充值 ${order.tokens} Token`);
+  return order;
+}
+
+export function getPaymentOrder(orderNo: string) {
+  return getDb().prepare('SELECT * FROM payment_orders WHERE order_no = ?').get(orderNo) as any;
 }
