@@ -5,6 +5,7 @@ import { getMessages } from 'next-intl/server';
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { SessionProvider } from "@/providers/SessionProvider";
 import Header from "@/components/Header";
+import AdSenseScript from "@/components/AdSenseScript";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default async function LocaleLayout({
       data-theme="light"
     >
       <body className="min-h-full flex flex-col" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+        <AdSenseScript googleId={process.env.NEXT_PUBLIC_ADSENSE_CLIENT} baiduId={process.env.NEXT_PUBLIC_BAIDU_UNION_ID} />
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>
             <ThemeProvider>

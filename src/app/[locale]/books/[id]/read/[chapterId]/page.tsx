@@ -12,6 +12,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import ReaderSettings from '@/components/ReaderSettings';
 import TTSPlayer from '@/components/TTSPlayer';
 import AdWall from '@/components/AdWall';
+import InArticleAd from '@/components/InArticleAd';
 
 interface ChapterData {
   chapter: {
@@ -227,7 +228,9 @@ export default function ReaderPage() {
         {(translatedContent || data?.translated) && !translating && (
           <p className="mb-3 text-center text-xs" style={{ color: 'var(--accent)' }}>AI 翻译 · 仅供参考</p>
         )}
-        <div className="chapter-text whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: displayContent }} />
+        <div className="chapter-text whitespace-pre-wrap">
+          {renderContentWithAds(displayContent, locale)}
+        </div>
       </div>
 
       {/* Bottom nav */}
@@ -286,5 +289,41 @@ export default function ReaderPage() {
       )}
     </div>
   );
+}
+
+const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || '';
+const BAIDU_UNION_ID = process.env.NEXT_PUBLIC_BAIDU_UNION_ID || '';
+
+function renderContentWithAds(html: string, locale: string) {
+  if (!html) return null;
+
+  // Split by paragraph breaks, preserving the breaks
+  const parts = html.split(/(\n\n+)/);
+  const elements: React.ReactNode[] = [];
+  let paraCount = 0;
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (/^\n\n+$/.test(part)) {
+      // Preserve paragraph breaks
+      elements.push(<span key={`br-${i}`}>{part}</span>);
+      continue;
+    }
+    if (!part.trim()) continue;
+
+    paraCount++;
+    elements.push(
+      <span key={`p-${i}`} dangerouslySetInnerHTML={{ __html: part }} />
+    );
+
+    // Insert ad after every 5 paragraphs
+    if (paraCount % 5 === 0 && (ADSENSE_CLIENT || BAIDU_UNION_ID)) {
+      elements.push(
+        <InArticleAd key={`ad-${i}`} googleClient={ADSENSE_CLIENT} baiduId={BAIDU_UNION_ID} format="auto" />
+      );
+    }
+  }
+
+  return elements;
 }
 

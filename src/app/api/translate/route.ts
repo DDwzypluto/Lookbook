@@ -16,15 +16,35 @@ async function translateChunk(text: string, from: string, to: string): Promise<s
   const data = await resp.json() as any;
 
   if (data.responseStatus === 200 || data.responseStatus === '200') {
-    return data.responseData?.translatedText || text;
+    const t = data.responseData?.translatedText || '';
+    if (t && !t.includes('MYMEMORY WARNING')) return t;
   }
-  return text; // Return original on failure
+  return ''; // Return empty on failure, caller handles
+}
+
+// Check if translation looks valid (target language character ratio)
+function looksValid(text: string, to: string): boolean {
+  if (!text || text.length < 2) return false;
+  const total = text.length;
+  // For English target, most chars should be ASCII
+  if (to === 'en') {
+    const ascii = text.split('').filter(c => c <= '\x7f').length;
+    return ascii / total > 0.5;
+  }
+  // For Chinese target, should have CJK characters
+  if (to === 'zh') {
+    const cjk = text.split('').filter(c => {
+      const code = c.charCodeAt(0);
+      return (code >= 0x4E00 && code <= 0x9FFF) || (code >= 0x3400 && code <= 0x4DBF);
+    }).length;
+    return cjk / total > 0.1;
+  }
+  return total > 2;
 }
 
 function splitBySentences(text: string, maxLen: number): string[] {
   const chunks: string[] = [];
   let current = '';
-  // Split on sentence boundaries
   const sentences = text.split(/(?<=[.!?。！？\n])\s*/);
   for (const s of sentences) {
     if ((current + s).length > maxLen && current.length > 0) {
@@ -47,32 +67,32 @@ export async function POST(request: NextRequest) {
     // Check cache
     if (chapterId && chapterId > 0) {
       const cached = getTranslation(Number(chapterId), to);
-      if (cached) {
+      if (cached && looksValid(cached.content, to)) {
         return NextResponse.json({ content: cached.content, word_count: cached.word_count, cached: true });
       }
     }
 
-    // Split large text into chunks, translate each
-    const chunks = splitBySentences(text, 1500);
+    // Split into small chunks (400 chars max for reliable translation)
+    const chunks = splitBySentences(text, 400);
     const results: string[] = [];
 
     for (let i = 0; i < chunks.length; i++) {
       const translated = await translateChunk(chunks[i], from, to);
-      if (translated && translated !== chunks[i] && !translated.includes('MYMEMORY WARNING')) {
+      if (translated && looksValid(translated, to)) {
         results.push(translated);
       } else {
+        // On failure, keep original text rather than garbage
         results.push(chunks[i]);
       }
-      // Small delay between chunks to avoid rate limiting
       if (chunks.length > 1 && i < chunks.length - 1) {
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 300));
       }
     }
 
     const fullText = results.join('\n\n');
 
-    // Cache result for chapters
-    if (chapterId && chapterId > 0 && fullText !== text) {
+    // Only cache if the result looks valid
+    if (chapterId && chapterId > 0 && fullText !== text && looksValid(fullText, to)) {
       saveTranslation(Number(chapterId), to, fullText, fullText.replace(/\s/g, '').length);
     }
 
