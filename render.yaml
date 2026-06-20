@@ -13,3 +13,13 @@ services:
         generateValue: true
       - key: NODE_ENV
         value: production
+      - key: DB_PATH
+        value: /opt/render/project/reader-data/reader.db
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_ADSENSE_CLIENT
+        sync: false
+      - key: NEXT_PUBLIC_BAIDU_UNION_ID
+        sync: false
+      - key: BQ_ENABLED
+        value: "false"
