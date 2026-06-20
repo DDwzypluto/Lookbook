@@ -140,6 +140,22 @@ export function initDb() {
       created_at      TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS ai_stories (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id         INTEGER DEFAULT 1,
+      title           TEXT NOT NULL,
+      synopsis        TEXT DEFAULT '',
+      genre           TEXT DEFAULT '',
+      language        TEXT DEFAULT 'zh-CN',
+      style           TEXT DEFAULT '',
+      status          TEXT DEFAULT 'draft',
+      token_cost      INTEGER DEFAULT 0,
+      total_chapters  INTEGER DEFAULT 0,
+      total_words     INTEGER DEFAULT 0,
+      created_at      TEXT DEFAULT (datetime('now')),
+      updated_at      TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS bookmarks (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
       book_id         INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
@@ -151,6 +167,9 @@ export function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_bookmarks_book_id ON bookmarks(book_id);
   `);
+
+  // Ensure default anonymous user exists
+  d.prepare('INSERT OR IGNORE INTO users (id, email, name) VALUES (1, ?, ?)').run('anonymous@local', '匿名用户');
 }
 
 export interface BookRow {

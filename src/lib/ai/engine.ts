@@ -6,6 +6,33 @@ interface ChatMessage {
   content: string;
 }
 
+function extractJson(text: string): string {
+  // Remove markdown code block markers
+  let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+  // Find the first '{' and extract the matching JSON object
+  const firstBrace = cleaned.indexOf('{');
+  if (firstBrace === -1) throw new Error('AI 响应中未找到 JSON 对象');
+
+  let depth = 0;
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = firstBrace; i < cleaned.length; i++) {
+    const ch = cleaned[i];
+    if (escapeNext) { escapeNext = false; continue; }
+    if (ch === '\\' && inString) { escapeNext = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return cleaned.slice(firstBrace, i + 1);
+    }
+  }
+  throw new Error('AI 响应中 JSON 对象未正确闭合');
+}
+
 async function chat(messages: ChatMessage[], temperature = 0.8, maxTokens = 4000): Promise<string> {
   if (!DEEPSEEK_KEY) throw new Error('DEEPSEEK_API_KEY not configured');
 
@@ -111,10 +138,12 @@ AI创造力：${config.creativity}
     { role: 'user', content: prompt },
   ], 0.6, 4000);
 
-  // Parse JSON from response (handle markdown code blocks)
-  let json = result.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-  const outline = JSON.parse(json) as StoryOutline;
-  return outline;
+  try {
+    return JSON.parse(extractJson(result)) as StoryOutline;
+  } catch (e: any) {
+    const tail = result.slice(-200);
+    throw new Error(`大纲JSON解析失败（响应${result.length}字符，末尾: ${tail.slice(-100)}）`);
+  }
 }
 
 export async function generateChapter(
@@ -157,13 +186,19 @@ ${prevSummary || '这是第一章，没有前情'}
   "content": "章节正文内容"
 }`;
 
+  const maxTokens = Math.max(config.wordsPerChapter * 4 + 1000, 4000);
   const result = await chat([
     { role: 'system', content: `你是一位资深${config.genre}小说作家，笔名${config.authorName}。只返回JSON格式。` },
     { role: 'user', content: prompt },
-  ], config.creativity, config.wordsPerChapter * 2);
+  ], config.creativity, maxTokens);
 
-  let json = result.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-  return JSON.parse(json) as { title: string; content: string };
+  try {
+    return JSON.parse(extractJson(result)) as { title: string; content: string };
+  } catch (e: any) {
+    // Log the tail of the response for debugging
+    const tail = result.slice(-200);
+    throw new Error(`JSON解析失败（响应${result.length}字符，末尾: ${tail.slice(-100)}）`);
+  }
 }
 
 export function estimateTokenCost(config: StoryConfig): number {

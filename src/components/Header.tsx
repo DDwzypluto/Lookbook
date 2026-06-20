@@ -37,6 +37,9 @@ export default function Header() {
           <Link href="/pricing" className="text-sm hover:underline" style={{ color: 'var(--text-secondary)' }}>
             💰 充值
           </Link>
+          <Link href="/discover" className="text-sm hover:underline" style={{ color: 'var(--text-secondary)' }}>
+            📚 广场
+          </Link>
           <Link href="/create" className="text-sm font-medium hover:underline"
             style={{ color: 'var(--accent)' }}>
             ✨ AI 创作

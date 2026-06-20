@@ -37,8 +37,8 @@ export default async function LocaleLayout({
       data-theme="light"
     >
       <body className="min-h-full flex flex-col" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-        <AdSenseScript googleId={process.env.NEXT_PUBLIC_ADSENSE_CLIENT} baiduId={process.env.NEXT_PUBLIC_BAIDU_UNION_ID} />
         <NextIntlClientProvider messages={messages}>
+          <AdSenseScript googleId={process.env.NEXT_PUBLIC_ADSENSE_CLIENT} baiduId={process.env.NEXT_PUBLIC_BAIDU_UNION_ID} />
           <SessionProvider>
             <ThemeProvider>
               <Header />

@@ -31,7 +31,7 @@ export default function PricingPage() {
       });
       const d = await resp.json();
       if (d.error) throw new Error(d.error);
-      setResult(d);
+      setResult(d.data || d);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -64,7 +64,7 @@ export default function PricingPage() {
               ¥{pkg.amount}
             </p>
             <p className="mt-1 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-              {pkg.tokens.toLocaleString()} Token
+              {String(pkg.tokens)} Token
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--text-secondary)' }}>{pkg.desc}</p>
             <p className="mt-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -92,7 +92,7 @@ export default function PricingPage() {
           <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>订单已创建</p>
           <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
             订单号：{result.orderNo}<br />
-            金额：¥{result.amount} | 到账：{result.tokens.toLocaleString()} Token
+            金额：¥{result.amount} | 到账：{String(result.tokens)} Token
           </p>
           <p className="mt-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
             {result.note}

@@ -39,6 +39,8 @@ export default function CreateStoryPage() {
   const [loading, setLoading] = useState(false);
   const [outline, setOutline] = useState<any>(null);
   const [error, setError] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [genProgress, setGenProgress] = useState('');
 
   const update = (field: keyof FormData, value: any) => setForm(f => ({ ...f, [field]: value }));
 
@@ -52,10 +54,53 @@ export default function CreateStoryPage() {
       });
       const d = await resp.json();
       if (d.error) throw new Error(d.error);
+      if (!d.outline) throw new Error('AI 返回数据异常，请重试');
       setOutline(d.outline);
-      setStep(3);
-    } catch (e: any) { setError(e.message); }
+      setStep(4);
+    } catch (e: any) { setError(e.message || '请求失败，请检查网络后重试'); }
     finally { setLoading(false); }
+  };
+
+  const handleGenerateAll = async () => {
+    if (!outline) return;
+    setGenerating(true);
+    setError('');
+    try {
+      // Save story to DB
+      const saveResp = await fetch('/api/stories', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: outline.title || form.title,
+          synopsis: outline.synopsis || form.synopsis,
+          genre: form.genre, language: form.language, style: form.style,
+          outline, config: form,
+        }),
+      });
+      const saveData = await saveResp.json();
+      if (saveData.error) throw new Error(saveData.error);
+      const storyId = saveData.id;
+
+      // Generate all chapters
+      const totalChapters = outline.chapterOutlines?.length || 10;
+      let lastBookId = 0;
+      for (let i = 1; i <= totalChapters; i++) {
+        setGenProgress(`正在生成第 ${i}/${totalChapters} 章...`);
+        const genResp = await fetch(`/api/stories/${storyId}/generate?chapter=${i}`, {
+          method: 'POST',
+        });
+        const genData = await genResp.json();
+        if (genData.error) throw new Error(genData.error);
+        lastBookId = genData.bookId;
+      }
+
+      setGenProgress('✅ 全部生成完毕！');
+      if (lastBookId) {
+        setTimeout(() => router.push(`/books/${lastBookId}`), 1000);
+      }
+    } catch (e: any) {
+      setError(e.message);
+      setGenerating(false);
+    }
   };
 
   const steps = ['基础信息', '叙述风格', '人物设定', '故事框架', '生成预览'];
@@ -288,10 +333,10 @@ export default function CreateStoryPage() {
             {loading ? '⏳ AI 生成中...' : '✨ 生成大纲'}
           </button>
         ) : (
-          <button onClick={() => router.push('/')}
-            className="rounded-lg px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-85"
+          <button onClick={handleGenerateAll} disabled={generating}
+            className="rounded-lg px-6 py-3 text-sm font-medium text-white transition-opacity disabled:opacity-50"
             style={{ backgroundColor: 'var(--accent)' }}>
-            ✅ 确认并开始逐章生成
+            {generating ? (genProgress || '⏳ 生成中...') : '✅ 确认并逐章生成'}
           </button>
         )}
       </div>
