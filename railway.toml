@@ -1,0 +1,14 @@
+[build]
+builder = "docker"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/"
+
+[variables]
+NODE_ENV = "production"
+DB_PATH = "/data/reader.db"
+BQ_ENABLED = "false"
+
+[volumes]
+db = "/data"
